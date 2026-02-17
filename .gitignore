@@ -1,0 +1,13 @@
+/dist
+/node_modules
+/.clinic
+/.vscode
+/prisma/migrations
+
+.env
+counter.txt
+
+img/*
+!img/.gitkeep
+
+logo.jpg
