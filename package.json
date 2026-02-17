@@ -8,7 +8,7 @@
   "scripts": {
     "start": "rm -rf dist && tsc && node dist/main.js",
     "dev": "nodemon src/main.ts",
-    "pm2": "npx pm2 delete main & rm -rf dist & tsc && npx pm2 start dist/main.js"
+    "pm2": "npx pm2 delete address-story & rm -rf dist & tsc && pm2 start ./dist/main.js --name address-story"
   },
   "devDependencies": {
     "nodemon": "^3.1.0",
