@@ -1,4 +1,6 @@
 import axios from "axios";
+const fs = require("fs");
+const path = require("path");
 
 const YANDEXGPT_FOLDER_ID = process.env.YANDEXGPT_FOLDER_ID!;
 const YANDEXGPT_API_KEY = process.env.YANDEXGPT_API_KEY!;
@@ -74,6 +76,22 @@ class AI_GENERATE_CLASS {
 
     console.log("getAddressByCoords", geoCoder.data);
     return geoCoder.data.display_name;
+  }
+
+  async saveUsersPhotoLink(userInfo: string, fileLink: string, other?: string) {
+    // Здесь можно реализовать сохранение ссылки на фото в базу данных, если это необходимо
+    console.log(`Saving photo link for user ${userInfo}: ${fileLink} ${other}`);
+ 
+
+    const dbFile = path.join(__dirname, "..", "myTmpDb.txt");
+    const entry = `${userInfo} ${fileLink} (${other})\n`;
+
+    if (fs.existsSync(dbFile)) {
+      fs.appendFileSync(dbFile, entry);
+    } else {
+      fs.writeFileSync(dbFile, entry);
+    }
+
   }
 }
 

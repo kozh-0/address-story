@@ -11,3 +11,5 @@ img/*
 !img/.gitkeep
 
 logo.jpg
+
+myTmpDb.txt

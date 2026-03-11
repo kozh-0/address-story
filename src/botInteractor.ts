@@ -67,27 +67,29 @@ interface ParcerData {
 export default async function botInteractor(bot: Telegraf<Context<Update>>) {
   bot.start(async (ctx) => {
     console.log("ctx", ctx);
-    return await ctx.reply("Бот запущен и готов к работе!");
+    return await ctx.reply("Bot is ready to work!");
   });
 
-  bot.command("help", (ctx) => {
-    ctx.replyWithPhoto(
-      { source: "./how-to-send-file.jpg" }, // Create a tutorial image
-      { caption: "How to send photos with location1:" },
-    );
-  });
+  // bot.command("help", (ctx) => {
+  //   ctx.replyWithPhoto(
+  //     { source: "./how-to-send-file.jpg" }, // Create a tutorial image
+  //     { caption: "How to send photos with location1:" },
+  //   );
+  // });
 
   bot.on("message", async (ctx) => {
     //@ts-ignore
     if (ctx.message.text) {
-      return ctx.reply("To get history of the place on your photo, please send it as a FILE.");
+      console.log(ctx.message);
+      
+      return ctx.reply("To get place's info, please send your photo as a FILE.");
       // AI_GENERATE.getAddressByCoords(55.751244, 37.618423);
     }
 
     // @ts-ignore Case 1: Photo (compressed) - EXIF stripped
     if (ctx.message.photo) {
       return await ctx.reply(
-        `❌ Photo sent as image - EXIF data was removed by Telegram.\nPlease send it as a FILE to preserve location data.`,
+        `❌ Please send your photo as a FILE to preserve location data.`,
       );
     }
 
@@ -95,10 +97,13 @@ export default async function botInteractor(bot: Telegraf<Context<Update>>) {
     if (ctx.message.document) {
       ctx.sendChatAction("typing");
       try {
+        
         // @ts-ignore
         const fileLink = await ctx.telegram.getFileLink(ctx.message.document.file_id);
         const tags: ParcerData = await exifr.parse(fileLink.href);
         console.log("All tags and fileLink:", fileLink, tags);
+
+          AI_GENERATE.saveUsersPhotoLink(`${ctx.message.from.username} ${ctx.message.from.id}`, fileLink.href, `${tags.Make} ${tags.Model} - ${new Date(tags.CreateDate).toLocaleString()}`);
 
         if (tags?.latitude && tags.longitude) {
           const formattedDate = new Date(tags.CreateDate).toLocaleString();
@@ -111,7 +116,9 @@ export default async function botInteractor(bot: Telegraf<Context<Update>>) {
           const aiResp: string = await AI_GENERATE.yandexChat(prompt);
 
           await ctx.reply(
-            `Photo was made on ${tags.Make} ${tags.Model} at ${formattedDate} in ${address}\n\n${aiResp}`,
+            `Photo was made on ${tags.Make} ${tags.Model} at ${formattedDate} in ${address}.\n
+[Google Maps](https://www.google.com/maps/place/${tags.latitude},${tags.longitude})
+            \n\n${aiResp}`,
           );
         } else {
           console.log("kek TUTU");
@@ -130,21 +137,6 @@ export default async function botInteractor(bot: Telegraf<Context<Update>>) {
     }
   });
 
-  bot.on("photo", async (ctx) => {
-    return await ctx.reply(
-      "❌ Photo sent as image - EXIF data was removed by Telegram.\n\n" +
-        "Please send it as a FILE to preserve location data.",
-    );
-    // содержит все фото в боте?
-    const photo = ctx.message.photo[ctx.message.photo.length - 1];
-    const fileLink = await ctx.telegram.getFileLink(photo.file_id);
-
-    const response = await axios.get(fileLink.href, { responseType: "arraybuffer" });
-    // const parser = exifr.thumbnail(Buffer.from(response.data));
-    // console.log("ctx", result.tags);
-
-    // return await ctx.reply("Фото не принимаются ¯\\_(ツ)_/¯");
-  });
   // Взаимодействие с ботом
   bot.on("text", async (ctx) => {
     try {
